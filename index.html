@@ -410,7 +410,7 @@
                                     id="set-exp-rate"
                                     type="number"
                                     min="1"
-                                    max="1000"
+                                    max="1000000"
                                     step="1"
                                     value="10"
                                     class="w-20 bg-slate-900 border border-slate-600 text-center text-white rounded"
@@ -436,6 +436,28 @@
                                     value="5"
                                     class="w-20 bg-slate-900 border border-slate-600 text-center text-white rounded"
                                     onchange="updateGameRate('drop', this.value)"
+                                >
+                            </div>
+                        </div>
+
+                        <div class="flex items-center justify-between gap-3 mt-3">
+                            <label
+                                for="set-gold-rate"
+                                class="text-sm text-slate-200"
+                            >
+                                Gold Rate
+                            </label>
+
+                            <div class="flex items-center gap-2">
+                                <input
+                                    id="set-gold-rate"
+                                    type="number"
+                                    min="1"
+                                    max="100000"
+                                    step="1"
+                                    value="10"
+                                    class="w-20 bg-slate-900 border border-slate-600 text-center text-white rounded"
+                                    onchange="updateGameRate('gold', this.value)"
                                 >
                             </div>
                         </div>

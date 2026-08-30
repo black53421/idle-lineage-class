@@ -5,6 +5,7 @@ const GAME_RATE_STORAGE_KEY = 'lineage_idle_game_rates';
 const GAME_RATES = {
     exp: 10,
     drop: 5,
+    gold: 10,
 };
 
 function normalizeGameRate(value, fallback) {
@@ -14,7 +15,7 @@ function normalizeGameRate(value, fallback) {
         return fallback;
     }
 
-    return Math.min(1000, Math.max(0.1, rate));
+    return Math.min(1000000, Math.max(0.1, rate));
 }
 
 function loadGameRates() {
@@ -29,6 +30,7 @@ function loadGameRates() {
 
         GAME_RATES.exp = normalizeGameRate(saved.exp, GAME_RATES.exp);
         GAME_RATES.drop = normalizeGameRate(saved.drop, GAME_RATES.drop);
+        GAME_RATES.gold = normalizeGameRate(saved.gold, GAME_RATES.gold);
     } catch (error) {
         console.warn('Failed to load game rates:', error);
     }
@@ -70,7 +72,7 @@ function updateGameRate(type, value) {
 }
 
 function syncGameRateUI() {
-    for (const type of ['exp', 'drop']) {
+    for (const type of ['exp', 'drop', 'gold']) {
         const input = document.getElementById(`set-${type}-rate`);
         const label = document.getElementById(`set-${type}-rate-value`);
 
@@ -498,7 +500,12 @@ function killMob(idx) {
         let g = _goldRange.min + Math.floor(Math.random() * (_goldRange.max - _goldRange.min + 1));
         g = Math.max(1, Math.floor(g * (0.9 + Math.random() * 0.2)));   // 💰 最終金額額外浮動 −10%～+10%
         // ⚠️v3.0.82 經典模式金幣÷2 已移除（一般＝經典；歷次：×1/10 → ×1/3 → ×1/2 → ×1）
-        g = Math.floor(g * (1 + dollFieldVal('goldBonus') / 100) * partyRewardMult());   // 🪆 娃娃加成後再乘有效隊伍人數（最高 ×8）
+        g = Math.floor(
+            g *
+            (1 + dollFieldVal('goldBonus') / 100) *
+            partyRewardMult() *
+            GAME_RATES.gold
+        );
         player.gold += g;
         // 🔧 金幣不再逐殺輸出於系統日誌；改由 gameLoop 累積、flushAwaySummary 以「掛機期間獲得總金幣」統一顯示。
 

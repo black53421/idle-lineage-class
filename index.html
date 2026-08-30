@@ -392,6 +392,59 @@
                 <div id="tab-clan" class="p-3 overflow-y-auto h-full hidden flex-col gap-2"></div>
                 <!-- 🔧 v2.6.74 自動化設定改「分頁內嵌」（原 v2.6.73 浮動視窗取消）：與 能力/技能 同框架，switchTab(automation) 切換；set-* 控制項恆在 DOM 供 saveGame/自動化讀取 -->
                 <div id="tab-automation" class="p-4 text-base overflow-y-auto h-full hidden">
+                    <div class="bg-slate-800 p-3 rounded-lg border border-slate-700">
+                        <div class="text-sm font-bold text-amber-200 mb-3">
+                            Game Rates
+                        </div>
+
+                        <div class="flex items-center justify-between gap-3 mb-3">
+                            <label
+                                for="set-exp-rate"
+                                class="text-sm text-slate-200"
+                            >
+                                EXP Rate
+                            </label>
+
+                            <div class="flex items-center gap-2">
+                                <input
+                                    id="set-exp-rate"
+                                    type="number"
+                                    min="1"
+                                    max="1000"
+                                    step="1"
+                                    value="10"
+                                    class="w-20 bg-slate-900 border border-slate-600 text-center text-white rounded"
+                                    onchange="updateGameRate('exp', this.value)"
+                                >
+                            </div>
+                        </div>
+                        <div class="flex items-center justify-between gap-3">
+                            <label
+                                for="set-drop-rate"
+                                class="text-sm text-slate-200"
+                            >
+                                Drop Rate
+                            </label>
+
+                            <div class="flex items-center gap-2">
+                                <input
+                                    id="set-drop-rate"
+                                    type="number"
+                                    min="1"
+                                    max="1000"
+                                    step="1"
+                                    value="5"
+                                    class="w-20 bg-slate-900 border border-slate-600 text-center text-white rounded"
+                                    onchange="updateGameRate('drop', this.value)"
+                                >
+                            </div>
+                        </div>
+
+                        <div class="text-xs text-slate-400 mt-3">
+                            Changes apply immediately and are stored in this browser.
+                        </div>
+                    </div>
+                    
                     <div class="bg-slate-800 p-3 rounded-lg border border-slate-700 flex flex-col gap-2">
                         <div class="flex items-center gap-2 mb-2">
                             <button type="button" class="btn w-24 py-1 text-sm font-bold bg-slate-700 hover:bg-slate-600 border-slate-500 text-slate-100" onclick="returnToCharacterSelect()">回選角</button>

@@ -1,9 +1,96 @@
 // Custom server rates.
 // Keep these multipliers centralized so game data remains unchanged.
-const GAME_RATES = Object.freeze({
+const GAME_RATE_STORAGE_KEY = 'lineage_idle_game_rates';
+
+const GAME_RATES = {
     exp: 10,
     drop: 5,
-});
+};
+
+function normalizeGameRate(value, fallback) {
+    const rate = Number(value);
+
+    if (!Number.isFinite(rate)) {
+        return fallback;
+    }
+
+    return Math.min(1000, Math.max(0.1, rate));
+}
+
+function loadGameRates() {
+    try {
+        const raw = localStorage.getItem(GAME_RATE_STORAGE_KEY);
+
+        if (!raw) {
+            return;
+        }
+
+        const saved = JSON.parse(raw);
+
+        GAME_RATES.exp = normalizeGameRate(saved.exp, GAME_RATES.exp);
+        GAME_RATES.drop = normalizeGameRate(saved.drop, GAME_RATES.drop);
+    } catch (error) {
+        console.warn('Failed to load game rates:', error);
+    }
+}
+
+function saveGameRates() {
+    try {
+        localStorage.setItem(
+            GAME_RATE_STORAGE_KEY,
+            JSON.stringify(GAME_RATES)
+        );
+    } catch (error) {
+        console.warn('Failed to save game rates:', error);
+    }
+}
+
+function updateGameRate(type, value) {
+    if (!Object.prototype.hasOwnProperty.call(GAME_RATES, type)) {
+        console.warn('Unknown game rate type:', type);
+        return;
+    }
+
+    const oldValue = GAME_RATES[type];
+    const newValue = normalizeGameRate(value, oldValue);
+
+    GAME_RATES[type] = newValue;
+    saveGameRates();
+
+    const input = document.getElementById(`set-${type}-rate`);
+    const label = document.getElementById(`set-${type}-rate-value`);
+
+    if (input) {
+        input.value = String(newValue);
+    }
+
+    if (label) {
+        label.textContent = `x${newValue}`;
+    }
+}
+
+function syncGameRateUI() {
+    for (const type of ['exp', 'drop']) {
+        const input = document.getElementById(`set-${type}-rate`);
+        const label = document.getElementById(`set-${type}-rate-value`);
+
+        if (input) {
+            input.value = String(GAME_RATES[type]);
+        }
+
+        if (label) {
+            label.textContent = `x${GAME_RATES[type]}`;
+        }
+    }
+}
+
+loadGameRates();
+
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', syncGameRateUI);
+} else {
+    syncGameRateUI();
+}
 
 let _audit = { start: Date.now(), gold0: 0, exp: 0, kills: 0, scrollWpn: 0, scrollArm: 0, watch: [], watchCnt: {} };
 let _auditView = 'stats';   // 'stats' = 本圖效率統計；'drops' = 本圖掉落物品

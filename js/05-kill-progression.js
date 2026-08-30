@@ -1,3 +1,10 @@
+// Custom server rates.
+// Keep these multipliers centralized so game data remains unchanged.
+const GAME_RATES = Object.freeze({
+    exp: 10,
+    drop: 5,
+});
+
 let _audit = { start: Date.now(), gold0: 0, exp: 0, kills: 0, scrollWpn: 0, scrollArm: 0, watch: [], watchCnt: {} };
 let _auditView = 'stats';   // 'stats' = 本圖效率統計；'drops' = 本圖掉落物品
 const AUDIT_WATCH_KEY = 'lineage_idle_audit_watch';
@@ -85,7 +92,7 @@ function auditTrackKill(mob) {
     // 📊 v3.6.58 刻意**不乘** getExpGainMult(player.lv)：該倍率在 Lv100 為 0（滿等不入帳），統計頁會整片歸零、
     //    連「這張圖效率如何」都看不出來。此處改記「同條件下應得的經驗」＝練功效率指標（Lv<100 時倍率恆 1，數字與實得完全相同）。
     //    ⚠️ 實際入帳仍在 killMob :320（照樣乘 getExpGainMult）——統計是參考值，不是經驗來源，勿把這裡當入帳口徑。
-    let g = Math.floor((mob.exp || 0) * (1 + partyExpBonusPct() / 100) * (1 + (typeof dollFieldVal === 'function' ? dollFieldVal('expBonus') : 0) / 100));   // 🤝 v3.7.62 組隊不再拆分經驗；統計記主玩家完整應得值
+    let g = Math.floor((mob.exp || 0) * GAME_RATES.exp * (1 + partyExpBonusPct() / 100) * (1 + (typeof dollFieldVal === 'function' ? dollFieldVal('expBonus') : 0) / 100));   // 🤝 v3.7.62 組隊不再拆分經驗；統計記主玩家完整應得值
     if (g > 0) _audit.exp += g;
     _audit.kills++;
 }
@@ -248,7 +255,12 @@ function trialItemDropMult(id) { return 1; }
 function partyActiveMemberCount() { return Math.min(8, 1 + ((player.allies || []).filter(a => a && !a._downed).length)); }
 function partyExpShareCount() { return partyActiveMemberCount(); }   // 相容 native-preview／舊外部呼叫；不再作為除數
 function partyRewardMult() { return partyActiveMemberCount(); }
-function partyDropRate(rate) { return Math.min(1, Math.max(0, Number(rate) || 0) * partyRewardMult()); }
++function partyDropRate(rate) {
+    return Math.min(
+        1,
+        Math.max(0, Number(rate) || 0) * partyRewardMult() * GAME_RATES.drop
+    );
+}
 // 任務道具的主玩家與隊員分流：隊員保留個別試煉進度，但所有實體道具都立即交給隊長背包。
 function grantPartyTrialQuestDrop(itemId, cnt) {
     cnt = Math.max(1, Math.floor(Number(cnt) || 1));
@@ -372,7 +384,7 @@ function killMob(idx) {
     let _hideKillMsg = (mob.race === '建築' && mob.noAutoTeleport);
     if(!_hideKillMsg) logCombat(`擊敗了 <span class="${getMobColor(mob.lv)}">${mob.n}</span>！`, 'player-heavy');  // 👈 新增
     // 🤝 v3.7.62 組隊經驗不再拆分：主玩家、每名未倒地傭兵、每隻未倒地寵物各取得完整經驗；既有組隊加成保留。
-    let _expEach = mob.exp * (1 + partyExpBonusPct() / 100);
+    let _expEach = mob.exp * GAME_RATES.exp * (1 + partyExpBonusPct() / 100);
     let _petExpGain = Math.floor(_expEach * (1 + dollFieldVal('expBonus') / 100));   // 🐾 每隻存活寵物各得完整玩家份額；玩家滿等不影響養寵
     let _playerExpGain = Math.floor(_petExpGain * getExpGainMult(player.lv));   // ⚠️v3.0.82 經典×0.5 已移除；Lv100 玩家自身仍不獲得經驗
     player.exp += _playerExpGain;
@@ -488,7 +500,7 @@ function killMob(idx) {
     // === 怪物專屬掉落（依「怪物掉落資料.md」）：每樣物品各自獨立判定一次 ===
     let dropList = _kbNoReward ? [] : (MOB_DROPS[mob.n] || []);   // 🔧 魔獸軍王之室：除頭目外不掉落物品
     let _dropBase = (mob._grace ? 10 : (mob._sherine ? (mob._sherineMad ? 5 : 3) : 1));   // 🔮 席琳的世界 ×3（瘋狂×5）／恩賜怪 ×10
-    let _dropMult = _dropBase * classicDropMult() * partyRewardMult();   // 席琳／恩賜／模式倍率後再乘有效隊伍人數（最高 ×8）
+    let _dropMult = _dropBase * classicDropMult() * partyRewardMult() * GAME_RATES.drop;   // 席琳／恩賜／模式倍率後再乘有效隊伍人數（最高 ×8）
     dropList.forEach(entry => {
         let itemId = entry[0];
         let ratePct = entry[1];               // 機率(%)

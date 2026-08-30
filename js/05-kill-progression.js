@@ -342,7 +342,7 @@ function trialItemDropMult(id) { return 1; }
 function partyActiveMemberCount() { return Math.min(8, 1 + ((player.allies || []).filter(a => a && !a._downed).length)); }
 function partyExpShareCount() { return partyActiveMemberCount(); }   // 相容 native-preview／舊外部呼叫；不再作為除數
 function partyRewardMult() { return partyActiveMemberCount(); }
-+function partyDropRate(rate) {
+function partyDropRate(rate) {
     return Math.min(
         1,
         Math.max(0, Number(rate) || 0) * partyRewardMult() * GAME_RATES.drop
